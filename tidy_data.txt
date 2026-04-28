@@ -1,0 +1,44 @@
+library(datasets)
+data(iris)
+?iris
+mean(iris$Sepal.Length[iris$Species == "virginica"])
+library(datasets)
+data(mtcars)
+?mtcars
+sapply(split(mtcars$mpg, mtcars$cyl), mean)
+split(mtcars, mtcars$cyl)
+setwd("C:/Users/HP/Desktop/Data/Sciences/Coursera/")
+setwd("C:/Users/HP/Desktop/Data/Sciences/Coursera/UCI HAR Dataset")
+X_train <- read.table("train/X_train.txt")
+y_train <- read.table("train/y_train.txt")
+subject_train <- read.table("train/subject_train.txt")
+X_test <- read.table("test/X_test.txt")
+y_test <- read.table("test/y_test.txt")
+subject_test <- read.table("test/subject_test.txt")
+train <- cbind(subject_train, y_train, X_train)
+test <- cbind(subject_test, y_test, X_test)
+data <- rbind(train, test)
+features <- read.table("features.txt")
+names(data) <- c("subject", "activity", features$V2)
+selected <- grepl("mean|std", features$V2)
+data <- data[, c(TRUE, TRUE, selected)]
+activities <- read.table("activity_labels.txt")
+data$activity <- factor(data$activity,
+                        levels = activities$V1,
+                        labels = activities$V2)
+names(data) <- gsub("-", "", names(data))
+names(data) <- gsub("\\()", "", names(data))
+names(data) <- gsub("^t", "Time", names(data))
+names(data) <- gsub("^f", "Frequency", names(data))
+names(data) <- gsub("Acc", "Accelerometer", names(data))
+names(data) <- gsub("Gyro", "Gyroscope", names(data))
+names(data) <- gsub("Mag", "Magnitude", names(data))
+library(dplyr)
+
+tidy_data <- data %>%
+  group_by(subject, activity) %>%
+  summarise_all(mean)
+
+write.table(tidy_data, "tidy_data.txt", row.names = FALSE)
+data <- read.table("tidy_data.txt", header = TRUE)
+head(data)
